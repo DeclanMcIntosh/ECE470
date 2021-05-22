@@ -3,11 +3,15 @@
 # contact: contact@declanmcintosh.com
 # paper: TBA
 
+from keras.backend.cntk_backend import dtype
 import numpy as np 
 import cv2
 import os
 import keras
 from random import shuffle
+
+from tensorflow.python.ops.gen_math_ops import segment_max
+import imgaug.augmenters as iaa
 
 
 def generateDataReferancesKvasir(splits,train_type,dataDir="/Data/Kvasir-SEG/"):
@@ -40,11 +44,21 @@ class DataGeneratorSIIM(keras.utils.Sequence):
 
         self.dataPuller = dataPuller
         self.dataReferances = dataFinder(splits,train_type)
+        self.dataAugmentater = iaa.Sequntial([
+            iaa.Crop(px=(0, 10)),
+            iaa.Fliplr(0.5),
+            iaa.Flipud(0.5),
+            iaa.Sometimes(0.5, iaa.Affine(translate_px={"x": (-40, 40)})),
+            iaa.Sometimes(0.25,iaa.OneOf([
+                    iaa.GaussianBlur((0, 3.0)),
+                    iaa.AverageBlur(k=(2, 7)),
+                    iaa.MedianBlur(k=(3, 11)),])),
+            ])
         self.on_epoch_end()
+
 
     def __len__(self): 
         return len(self.dataReferances["Raw"])
-
 
     def __getitem__(self, index):
         indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
@@ -61,12 +75,16 @@ class DataGeneratorSIIM(keras.utils.Sequence):
     def __data_generation(self, indexes): 
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
-        if self.wavelet:
-            X = np.empty((self.batch_size, *self.dim, 4))
-        else:
-            X = np.empty((self.batch_size, *self.dim, 1))
-        Y = np.empty((self.batch_size, *self.dim, 1), dtype=int)
 
+        X = np.empty((self.batch_size, *self.dim, self.channels), dtype=np.uint8)
+        Y = np.empty((self.batch_size, *self.dim, 1), dtype=np.int32)
+
+        for local, ind in enumerate(indexes):
+            x, y = self.dataPuller(self.dataReferances, ind, self.dim)
+            X[local,:,:,:] = x 
+            Y[local,:,:,:] = Y
+
+            X, Y = self.seq(images=X, segmentation_maps=Y)
 
         return X,Y
 
