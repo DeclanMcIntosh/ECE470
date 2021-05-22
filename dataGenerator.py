@@ -1,4 +1,4 @@
-# name: LeGall 5-3 GPU 
+# name: LeGall 5-3 Segmenation DataGenerators
 # author: Declan McIntosh
 # contact: contact@declanmcintosh.com
 # paper: TBA
