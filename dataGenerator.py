@@ -28,7 +28,7 @@ def generateDataReferancesKvasir(splits,train_type,dataDir="Data/Kvasir-SEG/"):
 def getSampleKvasir(dataReferances, index, dim):
     img = cv2.resize(cv2.imread(dataReferances["Raw"][index]), dim).astype(np.float32)
     ann = cv2.resize(cv2.imread(dataReferances["Ann"][index]), dim).astype(np.float32)/255
-
+    ann = np.expand_dims(ann[:,:,0],2)
     return img, ann
 
 
@@ -38,9 +38,10 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir): #
         'Initialization'
         self.train_type = train_type # 0 for train, 1 for validate
-        
+        self.batch_size = batch_size
         self.channels = channels
-        
+        self.dim = dim
+
 
         self.dataPuller = dataPuller
         self.dataReferances = dataFinder(splits,train_type)
@@ -57,11 +58,12 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         self.on_epoch_end()
 
 
-    def __len__(self): 
-        return len(self.dataReferances["Raw"])
+    def __len__(self): \
+        
+        return int(np.floor(len(self.dataReferances["Raw"]) / self.batch_size))
 
     def __getitem__(self, index):
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        indexes = list(range(index*self.batch_size,(index+1)*self.batch_size))
         X, Y = self.__data_generation(indexes)
         return X, Y
 
@@ -80,11 +82,13 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         Y = np.empty((self.batch_size, *self.dim, 1), dtype=np.int32)
 
         for local, ind in enumerate(indexes):
+            if ind > 1000:
+                print("dude why")
             x, y = self.dataPuller(self.dataReferances, ind, self.dim)
             X[local,:,:,:] = x 
-            Y[local,:,:,:] = Y
+            Y[local,:,:,:] = y
 
-            X, Y = self.seq(images=X, segmentation_maps=Y)
+            X, Y = self.dataAugmentater(images=X, segmentation_maps=Y)
 
         return X,Y
 

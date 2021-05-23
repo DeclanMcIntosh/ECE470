@@ -4,7 +4,7 @@ from model import *
 from keras import *
 import keras.backend as K
 
-batchSize = 16
+batchSize = 8
 lr = 1e-4
 
 def DiceLoss(y_true, y_pred, smooth=1e-6):
@@ -26,6 +26,6 @@ model = UNetPlusPlus(256,256,color_type=3)
 
 print(model.summary())
 
-model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss, 'binary_crossentropy', 'mse'])
+model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss])#, 'binary_crossentropy', 'mse'
 
 model.fit_generator(dataGenTrain, validation_data=dataGenTest, epochs=25, callbacks=[], workers=8)
