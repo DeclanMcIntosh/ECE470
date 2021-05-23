@@ -1,7 +1,7 @@
 from imgaug.augmenters import color
 from dataGenerator import * 
 from model import *
-from keras import *
+from keras.callbacks import TensorBoard, ReduceLROnPlateau
 from keras.utils import multi_gpu_model
 import keras.backend as K
 
@@ -27,9 +27,11 @@ model = UNetPlusPlus(256,256,color_type=12)
 
 print(model.summary())
 
+tb = TensorBoard(log_dir='./Logs', batch_size=batchSize, write_graph=False)
+rl = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5)
+
 multi_model = multi_gpu_model(model, gpus=2)
 
+multi_model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss, 'binary_crossentropy', 'mse'])#
 
-multi_model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss])#, 'binary_crossentropy', 'mse'
-
-multi_model.fit_generator(dataGenTrain, validation_data=dataGenTest, epochs=100, callbacks=[])
+multi_model.fit_generator(dataGenTrain, validation_data=dataGenTest, epochs=100, callbacks=[tb,rl])

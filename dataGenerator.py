@@ -35,7 +35,7 @@ def getSampleKvasir(dataReferances, index, dim):
 
 class DataGeneratorSIIM(keras.utils.Sequence):
     'Based loosely off of https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly'
-    def __init__(self, batch_size, dim=(256,256), wavelet=False, train_type=0, splits=[0.7,1,1], channels = 3,\
+    def __init__(self, batch_size, dim=(256,256), wavelet=False, train_type=0, splits=[0.85,1,1], channels = 3,\
         dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir): #
         'Initialization'
         self.train_type = train_type # 0 for train, 1 for validate
