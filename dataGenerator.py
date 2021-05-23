@@ -3,7 +3,7 @@
 # contact: contact@declanmcintosh.com
 # paper: TBA
 
-from keras.backend.cntk_backend import dtype
+from cv2 import data
 import numpy as np 
 import cv2
 import os
@@ -14,7 +14,7 @@ from tensorflow.python.ops.gen_math_ops import segment_max
 import imgaug.augmenters as iaa
 
 
-def generateDataReferancesKvasir(splits,train_type,dataDir="/Data/Kvasir-SEG/"):
+def generateDataReferancesKvasir(splits,train_type,dataDir="Data/Kvasir-SEG/"):
     imgs   = list(os.listdir(dataDir+"images"))
     imgs   = [dataDir+"images/" + s for s in imgs] 
     masks  = list(os.listdir(dataDir+"masks"))
@@ -34,7 +34,7 @@ def getSampleKvasir(dataReferances, index, dim):
 
 class DataGeneratorSIIM(keras.utils.Sequence):
     'Based loosely off of https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly'
-    def __init__(self, data, batch_size, dim=(512,512), wavelet=False, train_type=0, splits=[0.7,1,1], channels = 3,\
+    def __init__(self, batch_size, dim=(256,256), wavelet=False, train_type=0, splits=[0.7,1,1], channels = 3,\
         dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir): #
         'Initialization'
         self.train_type = train_type # 0 for train, 1 for validate
@@ -44,7 +44,7 @@ class DataGeneratorSIIM(keras.utils.Sequence):
 
         self.dataPuller = dataPuller
         self.dataReferances = dataFinder(splits,train_type)
-        self.dataAugmentater = iaa.Sequntial([
+        self.dataAugmentater = iaa.Sequential([
             iaa.Crop(px=(0, 10)),
             iaa.Fliplr(0.5),
             iaa.Flipud(0.5),
