@@ -9,6 +9,7 @@ import cv2
 import os
 import keras
 from random import shuffle
+from wavelet import *
 
 from tensorflow.python.ops.gen_math_ops import segment_max
 import imgaug.augmenters as iaa
@@ -40,7 +41,11 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         self.train_type = train_type # 0 for train, 1 for validate
         self.batch_size = batch_size
         self.channels = channels
-        self.dim = dim
+        self.wavelet = wavelet
+        if self.wavelet:
+            self.dim = (dim[0]*2,dim[1]*2)
+        else:
+            self.dim = dim
 
 
         self.dataPuller = dataPuller
@@ -82,13 +87,15 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         Y = np.empty((self.batch_size, *self.dim, 1), dtype=np.int32)
 
         for local, ind in enumerate(indexes):
-            if ind > 1000:
-                print("dude why")
             x, y = self.dataPuller(self.dataReferances, ind, self.dim)
             X[local,:,:,:] = x 
             Y[local,:,:,:] = y
 
-            X, Y = self.dataAugmentater(images=X, segmentation_maps=Y)
+        X, Y = self.dataAugmentater(images=X, segmentation_maps=Y)
+
+        if self.wavelet:
+            X = dwt_5_3_CPU(X)
+            Y = Y[:,::2,::2,:]
 
         return X,Y
 
