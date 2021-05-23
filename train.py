@@ -2,9 +2,10 @@ from imgaug.augmenters import color
 from dataGenerator import * 
 from model import *
 from keras import *
+from keras.utils import multi_gpu_model
 import keras.backend as K
 
-batchSize = 8
+batchSize = 16
 lr = 1e-4
 wavelet=True
 
@@ -26,7 +27,9 @@ model = UNetPlusPlus(256,256,color_type=12)
 
 print(model.summary())
 
-model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss])#, 'binary_crossentropy', 'mse'
+multi_model = multi_gpu_model(model, gpus=2)
 
 
-model.fit_generator(dataGenTrain, validation_data=dataGenTest, epochs=100, callbacks=[])
+multi_model.compile(optimizer=Adam(lr=lr), loss=DiceLoss, metrics=[JaccardLoss, DiceLoss])#, 'binary_crossentropy', 'mse'
+
+multi_model.fit_generator(dataGenTrain, validation_data=dataGenTest, epochs=100, callbacks=[])
