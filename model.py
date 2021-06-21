@@ -1,19 +1,19 @@
 # name: UNet++ implemenation
 # author: https://github.com/MrGiovanni/UNetPlusPlus/blob/f8c4064659c6857d17f39088acd0d1eeb95340ea/keras/helper_functions.py
 # ported: Declan McIntosh
+import tensorflow as tf
 
 import keras
-import tensorflow as tf
-from keras.models import Model
-from keras import backend as K
-from keras.layers import Input, merge, Conv2D, ZeroPadding2D, UpSampling2D, Dense, concatenate, Conv2DTranspose
-from keras.layers.pooling import MaxPooling2D, GlobalAveragePooling2D, MaxPooling2D
-from keras.layers.core import Dense, Dropout, Activation
-from keras.layers import BatchNormalization, Dropout, Flatten, Lambda
-from keras.layers.advanced_activations import ELU, LeakyReLU
-from keras.optimizers import Adam, RMSprop, SGD
-from keras.regularizers import l2
-from keras.layers.noise import GaussianDropout
+from   keras.models import Model
+from   keras import backend as K
+from   keras.layers import Input, Conv2D, ZeroPadding2D, UpSampling2D, Dense, concatenate, Conv2DTranspose, Add, Concatenate
+from   keras.layers import MaxPooling2D, GlobalAveragePooling2D, MaxPooling2D
+from   keras.layers import Dense, Dropout, Activation
+from   keras.layers import BatchNormalization, Dropout, Flatten, Lambda
+from   keras.layers import ELU, LeakyReLU
+from   keras.optimizers import Adam, RMSprop, SGD
+from   keras.regularizers import l2
+from   keras.layers import GaussianDropout
 
 import numpy as np
 
@@ -28,7 +28,7 @@ def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
 
 def UNetPlusPlus(img_rows, img_cols, color_type=1, num_class=1, deep_supervision=False):
 
-    nb_filter = [32,64,128,256,512]
+    nb_filter = [16,32,64,128,256]
 
     bn_axis = 3
     img_input = Input(shape=(img_rows, img_cols, color_type), name='main_input')
@@ -93,11 +93,13 @@ def UNetPlusPlus(img_rows, img_cols, color_type=1, num_class=1, deep_supervision
     nestnet_output_4 = Conv2D(num_class, (1, 1), activation='sigmoid', name='output_4', kernel_initializer = 'he_normal', padding='same', kernel_regularizer=l2(1e-4))(conv1_5)
 
     if deep_supervision:
-        model = Model(input=img_input, output=[nestnet_output_1,
+        model = Model(img_input, [nestnet_output_1,
                                                nestnet_output_2,
                                                nestnet_output_3,
                                                nestnet_output_4])
     else:
-        model = Model(input=img_input, output=[nestnet_output_4])
+        model = Model(img_input, [nestnet_output_4])
 
     return model
+
+

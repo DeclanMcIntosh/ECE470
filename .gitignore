@@ -133,3 +133,7 @@ dmypy.json
 *.png
 *.jpg
 *.tif
+
+# Logs
+*.h5
+*.DESKTOP-JK8BLI8
