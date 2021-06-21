@@ -40,13 +40,14 @@ def getSampleKvasir(dataReferances, index, dim):
 class DataGeneratorSIIM(keras.utils.Sequence):
     'Based loosely off of https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly'
     def __init__(self, batch_size, dim=(256,256), wavelet=False, train_type=0, splits=[0.8,0.9,1], channels = 3,\
-        dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir, deepSupervision=False): #
+        dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir, deepSupervision=False, dataAugs=True): #
         'Initialization'
         self.train_type = train_type # 0 for train, 1 for validate
         self.batch_size = batch_size
         self.channels = channels
         self.wavelet = wavelet
         self.deepSupervision = deepSupervision
+        self.dataAugs = dataAugs
         if self.wavelet:
             self.dim = (dim[0]*2,dim[1]*2)
         else:
@@ -103,7 +104,7 @@ class DataGeneratorSIIM(keras.utils.Sequence):
             Y[local,:,:,:] = y
 
 
-        if self.train_type == 0: 
+        if self.train_type == 0 and self.dataAugs: 
             X, Y = self.dataAugmentater(images=X, segmentation_maps=Y)
 
         X = X.astype(np.float32)/255.

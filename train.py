@@ -14,9 +14,9 @@ config = {
 "lr" : 3e-4,
 "wavelet":True,   
 "deepSupervision" : False,
+"dataAugs" : True,
 }
-
-LogDescription = "Loss_Dice_wavelet_"+str(config["wavelet"])+"_lr_" +str(config["lr"])+"_batch_" + str(config["batchSize"])+ "_DeSu_" + str(config["deepSupervision"])+   "_t_" + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M") 
+LogDescription = "Loss_BCE&Dice_wavelet_"+str(config["wavelet"])+ "_Augs_" + str(config["dataAugs"])+ "_DeepSu_" + str(config["deepSupervision"])+"_lr_" +str(config["lr"])+"_batch_" + str(config["batchSize"])+   "_t_" + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M") 
 
 def DiceLoss(y_true, y_pred):
     smooth = 1.
@@ -46,11 +46,11 @@ def mean_iou(y_true, y_pred):
 def testMag(y_true, y_pred):
     return K.mean(y_pred)
 
-dataGenTrain = DataGeneratorSIIM(config["batchSize"], train_type=0, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
-dataGenVal   = DataGeneratorSIIM(config["batchSize"], train_type=1, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
+dataGenTrain = DataGeneratorSIIM(config["batchSize"], train_type=0, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"], dataAugs=config["dataAugs"])
+dataGenVal   = DataGeneratorSIIM(config["batchSize"], train_type=1, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"], dataAugs=config["dataAugs"])
 
 tb = TensorBoard(log_dir="./Logs/"+LogDescription, batch_size=config["batchSize"], write_graph=False)
-mc = ModelCheckpoint("./Logs/"+LogDescription+"/_epoch-{epoch:03d}-{acc:03f}-{val_acc:03f}.h5", save_best_only=True, verbose=1)
+mc = ModelCheckpoint("./Logs/"+LogDescription+"/_epoch-{epoch:03d}-{val_loss:03f}-{val_acc:03f}.h5", save_best_only=True, verbose=1)
 es = EarlyStopping(patience=4, verbose=1)
 
 if config["wavelet"]:
