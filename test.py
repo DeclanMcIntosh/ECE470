@@ -1,47 +1,99 @@
-from imgaug.augmenters import color
+# author: Declan McIntosh
+# contact: contact@declanmcintosh.com
+
 from dataGenerator import * 
 from model import *
 from wavelet import *
-from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint
-from keras.optimizers import Adam
+from loss import *
 import keras.backend as K
 from keras.models import load_model
+from sklearn.metrics import accuracy_score, log_loss, mean_squared_error
 
 import tensorflow as tf
-import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
+import time
 
 config = {
 "batchSize" : 1,
 "lr" : 1e-3,
-"wavelet":False,   
+"wavelet":True,   
 "deepSupervision" : False,
 }
 
-def DiceLoss(y_true, y_pred, smooth=1e-6):
-    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
-    dice = (2. * intersection + smooth) / (K.sum(K.square(y_true),-1) + K.sum(K.square(y_pred),-1) + smooth)
-    return 1 - dice
 
-def JaccardLoss(y_true, y_pred, smooth=100):
-    intersection = K.sum(K.abs(y_true * y_pred), axis=-1)
-    sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-    return (1 - jac) * smooth
+def test(model, Visualize = True):
+    meanIOU = []
+    IOU = []
+    meanDICE = []
+    DICE = []
+    ACC = []
+    MSE = []
 
-dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=1, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
+    dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=2, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
 
-if config["wavelet"]:
-    model = UNetPlusPlus(256,256,color_type=12, deep_supervision=config["deepSupervision"])
-else:
-    model = UNetPlusPlus(256,256,color_type=3,  deep_supervision=config["deepSupervision"])
+    for x in range(dataGenTest.__len__()):
+
+        inputVal, trueVal =  dataGenTest.__getitem__(x)
+
+        predVal = model.predict(inputVal)
+
+        predValCts = predVal.copy()
+        predVal2 = predVal.copy()
+        trueVal2 = trueVal.copy()
+
+        predVal[predVal2>0.5] = 1 
+        predVal[predVal2<=0.5] = 0 
+
+        predVal2[predVal2<0.5] = 1 
+        predVal2[predVal2>=0.5] = 0 
+
+        trueVal2[trueVal2<0.5] = 1 
+        trueVal2[trueVal2>=0.5] = 0 
+
+        if Visualize:
+            fig = plt.figure()
+            ax1 = fig.add_subplot(2,2,1)
+            ax1.imshow(inputVal[0,:,:,0])
+            ax2 = fig.add_subplot(2,2,2)
+            ax2.imshow(np.concatenate([trueVal[0],trueVal[0],trueVal[0]],axis=2))
+            ax3 = fig.add_subplot(2,2,3)
+            ax3.imshow(np.concatenate([predValCts[0],predValCts[0],predValCts[0]],axis=2))
+            ax4 = fig.add_subplot(2,2,4)
+            ax4.imshow(np.concatenate([predVal[0],predVal[0],predVal[0]],axis=2))
+            plt.show()
+
+
+        DICE.append(DiceCoef(trueVal,predVal))
+        meanDICE.append((DiceCoef(trueVal,predVal)+DiceCoef(trueVal2,predVal2))/2)
+        ACC.append(accuracy_score(trueVal.flatten(),predVal.flatten()))
+        meanIOU.append((IOUCoef(trueVal,predVal)+IOUCoef(trueVal2,predVal2))/2)
+        IOU.append(IOUCoef(trueVal,predVal))
+        MSE.append(mean_squared_error(trueVal.flatten(),predValCts.flatten()))
+
+
+    print("Mean Dice: ", np.mean(np.array(meanDICE)))
+    print("Dice: ", np.mean(np.array(DICE)))
+    print("Mean IOU: ",np.mean(np.array(meanIOU)))
+    print("IOU: ",np.mean(np.array(IOU)))
+    print("MSE: ", np.mean(np.array(MSE)))
+    print("Accuracy: ",np.mean(np.array(ACC)))
+    
+def get_flops():
+    run_meta = tf.RunMetadata()
+    opts = tf.profiler.ProfileOptionBuilder.float_operation()
+
+    # We use the Keras session graph in the call to the profiler.
+    flops = tf.profiler.profile(graph=K.get_session().graph,
+                                run_meta=run_meta, cmd='op', options=opts)
+
+    return flops.total_float_ops  # Prints the "flops" of the model.
+
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_08_20_25/_epoch-055-0.276358-0.929860.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+
 print(model.summary())
 
-model = load_model("./Models/Loss_Dice_wavelet_True_lr_0.001_batch_12_DeSu_False_t_2021_06_20_11_12_epoch-046-0.856850-0.817176.h5", custom_objects={"DiceLoss":DiceLoss,"JaccardLoss":JaccardLoss})
+get_flops()
 
-out = model.predict_generator(dataGenTest, 10)
-
-plt.imshow(out[0,:,:,0])
-
-plt.show()
+test(model)
