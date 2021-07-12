@@ -5,15 +5,10 @@ from dataGenerator import *
 from model import *
 from wavelet import *
 from loss import *
-import keras.backend as K
 from keras.models import load_model
-from sklearn.metrics import accuracy_score, log_loss, mean_squared_error
 
-import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
-import time
 
 config = {
 "batchSize" : 1,
@@ -23,7 +18,7 @@ config = {
 }
 
 
-def test(model):
+def demo(model):
 
     dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=2, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
 
@@ -46,9 +41,14 @@ def test(model):
         trueVal2[trueVal2<0.5] = 1 
         trueVal2[trueVal2>=0.5] = 0 
 
+
+
+
+        RGB = ((np.concatenate([np.expand_dims(inputVal[0,:,:,2],axis=2),np.expand_dims(inputVal[0,:,:,1],axis=2),np.expand_dims(inputVal[0,:,:,0],axis=2)], axis=2)/2.+0.5))
+
         fig = plt.figure()
         ax1 = fig.add_subplot(2,2,1)
-        ax1.imshow(inputVal[0,:,:,0])
+        ax1.imshow(RGB)
         ax2 = fig.add_subplot(2,2,2)
         ax2.imshow(np.concatenate([trueVal[0],trueVal[0],trueVal[0]],axis=2))
         ax3 = fig.add_subplot(2,2,3)
