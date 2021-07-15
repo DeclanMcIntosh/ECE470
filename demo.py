@@ -40,20 +40,63 @@ def demo(model):
 
         trueVal2[trueVal2<0.5] = 1 
         trueVal2[trueVal2>=0.5] = 0 
+        
+        def histEqual(img):
+            img = 255*img
+            img = img.astype(np.uint8)
+            R, G, B = cv2.split(img)
+            output1_R = cv2.equalizeHist(R)
+            output1_G = cv2.equalizeHist(G)
+            output1_B = cv2.equalizeHist(B)
+            img = cv2.merge((output1_R, output1_G, output1_B))
+            return img
 
-
-
-
-        RGB = ((np.concatenate([np.expand_dims(inputVal[0,:,:,2],axis=2),np.expand_dims(inputVal[0,:,:,1],axis=2),np.expand_dims(inputVal[0,:,:,0],axis=2)], axis=2)/2.+0.5))
+        x =0
+        RGB =   ((np.concatenate([np.expand_dims(inputVal[0,:,:,2+x],axis=2),np.expand_dims(inputVal[0,:,:,1+x],axis=2),np.expand_dims(inputVal[0,:,:,0+x],axis=2)], axis=2)/2.+0.5))
+        x = 3
+        RGB_HL = histEqual(((np.concatenate([np.expand_dims(inputVal[0,:,:,2+x],axis=2),np.expand_dims(inputVal[0,:,:,1+x],axis=2),np.expand_dims(inputVal[0,:,:,0+x],axis=2)], axis=2)/2.+0.5)))
+        x = 6
+        RGB_LH = histEqual(((np.concatenate([np.expand_dims(inputVal[0,:,:,2+x],axis=2),np.expand_dims(inputVal[0,:,:,1+x],axis=2),np.expand_dims(inputVal[0,:,:,0+x],axis=2)], axis=2)/2.+0.5)))
+        RGB_LH = np.sqrt(((RGB_LH - np.min(RGB_LH))/(np.max(RGB_LH)-np.min(RGB_LH))))
+        x = 9
+        RGB_HH = histEqual(((np.concatenate([np.expand_dims(inputVal[0,:,:,2+x],axis=2),np.expand_dims(inputVal[0,:,:,1+x],axis=2),np.expand_dims(inputVal[0,:,:,0+x],axis=2)], axis=2)/2.+0.5)))
+        RGB_HH = np.sqrt(((RGB_HH - np.min(RGB_HH))/(np.max(RGB_HH)-np.min(RGB_HH))))
 
         fig = plt.figure()
         ax1 = fig.add_subplot(2,2,1)
+        ax1.axis('off')
+        ax1.title.set_text("RGB Image")
         ax1.imshow(RGB)
         ax2 = fig.add_subplot(2,2,2)
+        ax2.axis('off')
+        ax2.title.set_text("RGB Low Pass High Pass")
+        ax2.imshow(RGB_HL)
+        ax3 = fig.add_subplot(2,2,3)
+        ax3.axis('off')
+        ax3.title.set_text("RGB High Pass Low Pass")
+        ax3.imshow(RGB_LH)
+        ax4 = fig.add_subplot(2,2,4)
+        ax4.axis('off')
+        ax4.title.set_text("RGB High Pass High Pass")
+        ax4.imshow(RGB_HH)
+        plt.show()
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(2,2,1)
+        ax1.axis('off')
+        ax1.title.set_text("RGB Image")
+        ax1.imshow(RGB)
+        ax2 = fig.add_subplot(2,2,2)
+        ax2.axis('off')
+        ax2.title.set_text("Mask Ground Truth")
         ax2.imshow(np.concatenate([trueVal[0],trueVal[0],trueVal[0]],axis=2))
         ax3 = fig.add_subplot(2,2,3)
+        ax3.axis('off')
+        ax3.title.set_text("Mask Confidences")
         ax3.imshow(np.concatenate([predValCts[0],predValCts[0],predValCts[0]],axis=2))
         ax4 = fig.add_subplot(2,2,4)
+        ax4.axis('off')
+        ax4.title.set_text("Final Mask Prediction")
         ax4.imshow(np.concatenate([predVal[0],predVal[0],predVal[0]],axis=2))
         plt.show()
 

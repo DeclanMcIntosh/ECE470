@@ -72,20 +72,6 @@ def train(config):
 
     multi_model.fit_generator(dataGenTrain, validation_data=dataGenVal, epochs=100, callbacks=[tb, mc, es, rl])
 
-
-config = {
-"batchSize" : 16,
-"lr" : 1e-4,
-"wavelet":True,   
-"deepSupervision" : False,
-"dataAugs" : True,
-"pretrained" : False
-}
-
-train(config=config)  
-train(config=config)  
-train(config=config)  
-
 config = {
 "batchSize" : 16,
 "lr" : 1e-4,

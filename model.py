@@ -8,15 +8,17 @@ from   keras.layers import Input, Conv2D, concatenate, Concatenate, Conv2DTransp
 def standard_unit(input_tensor, stage, nb_filter, kernel_size=3):
 
     x = Conv2D(nb_filter, (kernel_size, kernel_size), activation="relu", name='conv'+stage+'_1', kernel_initializer = 'he_normal', padding='same')(input_tensor)
-    x = Dropout(rate=0.3, name='dp'+stage+'_1')(x)
+    x = BatchNormalization()(x)
+    #x = Dropout(rate=0.4, name='dp'+stage+'_1')(x)
     x = Conv2D(nb_filter, (kernel_size, kernel_size), activation="relu", name='conv'+stage+'_2', kernel_initializer = 'he_normal', padding='same')(x)
-    x = Dropout(rate=0.3, name='dp'+stage+'_2')(x)
+    x = BatchNormalization()(x)
+    #x = Dropout(rate=0.4, name='dp'+stage+'_2')(x)
 
     return x
 
 def UNetPlusPlus(img_rows, img_cols, color_type=1, num_class=1, deep_supervision=False):
 
-    nb_filter = [32,64,128,256,512]
+    nb_filter = [16,32,64,128,256]
 
     bn_axis = 3
     img_input = Input(shape=(img_rows, img_cols, color_type), name='main_input')

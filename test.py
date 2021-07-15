@@ -11,7 +11,6 @@ from sklearn.metrics import accuracy_score, log_loss, mean_squared_error
 
 import tensorflow as tf
 import numpy as np
-import matplotlib.pyplot as plt
 
 import time
 
@@ -23,7 +22,7 @@ config = {
 }
 
 
-def test(model, Visualize = True):
+def test(model):
     meanIOU = []
     IOU = []
     meanDICE = []
@@ -34,10 +33,13 @@ def test(model, Visualize = True):
     dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=2, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
 
     for x in range(dataGenTest.__len__()):
+        start = time.time()
 
         inputVal, trueVal =  dataGenTest.__getitem__(x)
 
         predVal = model.predict(inputVal)
+
+        print("Inferance time in ms: ", 1000*abs(start-time.time()))
 
         predValCts = predVal.copy()
         predVal2 = predVal.copy()
@@ -52,25 +54,14 @@ def test(model, Visualize = True):
         trueVal2[trueVal2<0.5] = 1 
         trueVal2[trueVal2>=0.5] = 0 
 
-        if Visualize:
-            fig = plt.figure()
-            ax1 = fig.add_subplot(2,2,1)
-            ax1.imshow(inputVal[0,:,:,0])
-            ax2 = fig.add_subplot(2,2,2)
-            ax2.imshow(np.concatenate([trueVal[0],trueVal[0],trueVal[0]],axis=2))
-            ax3 = fig.add_subplot(2,2,3)
-            ax3.imshow(np.concatenate([predValCts[0],predValCts[0],predValCts[0]],axis=2))
-            ax4 = fig.add_subplot(2,2,4)
-            ax4.imshow(np.concatenate([predVal[0],predVal[0],predVal[0]],axis=2))
-            plt.show()
-
-
         DICE.append(DiceCoef(trueVal,predVal))
         meanDICE.append((DiceCoef(trueVal,predVal)+DiceCoef(trueVal2,predVal2))/2)
         ACC.append(accuracy_score(trueVal.flatten(),predVal.flatten()))
         meanIOU.append((IOUCoef(trueVal,predVal)+IOUCoef(trueVal2,predVal2))/2)
         IOU.append(IOUCoef(trueVal,predVal))
         MSE.append(mean_squared_error(trueVal.flatten(),predValCts.flatten()))
+
+
 
 
     print("Mean Dice: ", np.mean(np.array(meanDICE)))
@@ -91,9 +82,10 @@ def get_flops():
     return flops.total_float_ops  # Prints the "flops" of the model.
 
 model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_08_20_25/_epoch-055-0.276358-0.929860.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+#model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_09_03_41/_epoch-090-0.292013-0.928495.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 
-print(model.summary())
+#print(model.summary())
 
-get_flops()
+#get_flops()
 
 test(model)
