@@ -90,21 +90,21 @@ def get_flops():
     return flops.total_float_ops  # Prints the "flops" of the model.
 
 # With wavelet preprocessing and with Data Augmentation
-model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_08_20_25/_epoch-055-0.276358-0.929860.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_lr_0.0001_batch_16_t_2021_07_16_20_02/_epoch-055-0.256651-0.935096.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 print("With wavelet preprocessing and with Data Augmentation")
 print(model.summary())
 get_flops()
 test(model)
 
 # Without wavelet preprocessing and with Data Augmentation
-model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_09_03_41/_epoch-090-0.292013-0.928495.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_lr_0.0001_batch_16_t_2021_07_16_19_12/_epoch-033-0.305945-0.923208.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 print("Without wavelet preprocessing and with Data Augmentation")
 print(model.summary())
 get_flops()
 test(model)
 
 # Without wavelet preprocessing and without Data Augmentation
-model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_False_DeepSu_False_lr_0.0001_batch_16_t_2021_07_15_13_09/_epoch-007-0.405808-0.900194.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_False_lr_0.0001_batch_16_t_2021_07_16_18_35/_epoch-022-0.363203-0.914916.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 print("Without wavelet preprocessing and without Data Augmentation")
 print(model.summary())
 get_flops()

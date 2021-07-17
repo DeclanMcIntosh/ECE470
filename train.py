@@ -6,14 +6,15 @@ from model import *
 from loss import *
 from keras.callbacks import TensorBoard, ReduceLROnPlateau, ModelCheckpoint, EarlyStopping
 from keras.optimizers import Adam
+from keras.utils import multi_gpu_model
 from keras.losses import binary_crossentropy
 import datetime
 
 def train(config):
-    LogDescription = "Res_Loss_NewWeightedBCE&Dice_wavelet_"+str(config["wavelet"])+ "_Augs_" + str(config["dataAugs"])+ "_DeepSu_" + str(config["deepSupervision"])+"_lr_" +str(config["lr"])+"_batch_" + str(config["batchSize"])+   "_t_" + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M") 
+    LogDescription = "Res_Loss_NewWeightedBCE&Dice_wavelet_"+str(config["wavelet"])+ "_Augs_" + str(config["dataAugs"])+"_lr_" +str(config["lr"])+"_batch_" + str(config["batchSize"])+   "_t_" + datetime.datetime.now().strftime("%Y_%m_%d_%H_%M") 
     # init data generator
-    dataGenTrain = DataGeneratorSIIM(config["batchSize"], train_type=0, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"], dataAugs=config["dataAugs"])
-    dataGenVal   = DataGeneratorSIIM(config["batchSize"], train_type=1, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"], dataAugs=config["dataAugs"])
+    dataGenTrain = DataGeneratorSIIM(config["batchSize"], train_type=0, wavelet=config["wavelet"], dataAugs=config["dataAugs"])
+    dataGenVal   = DataGeneratorSIIM(config["batchSize"], train_type=1, wavelet=config["wavelet"], dataAugs=config["dataAugs"])
 
     # configure and load model
     if config["wavelet"]:
@@ -24,10 +25,7 @@ def train(config):
 
     # build our callbacks
     tb = TensorBoard(log_dir="./Logs/"+LogDescription, batch_size=config["batchSize"], write_graph=False)
-    if config["deepSupervision"]:
-        mc = ModelCheckpoint("./Logs/"+LogDescription+"/_epoch-{epoch:03d}-{val_output_4_loss:03f}-{val_output_4_acc:03f}.h5", save_best_only=True, verbose=1)
-    else:
-        mc = ModelCheckpoint("./Logs/"+LogDescription+"/_epoch-{epoch:03d}-{val_loss:03f}-{val_acc:03f}.h5", save_best_only=True, verbose=1)
+    mc = ModelCheckpoint("./Logs/"+LogDescription+"/_epoch-{epoch:03d}-{val_loss:03f}-{val_acc:03f}.h5", save_best_only=True, verbose=1)
     rl = ReduceLROnPlateau(patience=5, factor=0.1, verbose=1, min_lr=1e-6)
     es = EarlyStopping(patience=10, verbose=1)
 
@@ -41,11 +39,31 @@ def train(config):
     # fit the model to the data generator
     model.fit_generator(dataGenTrain, validation_data=dataGenVal, epochs=100, callbacks=[tb, mc, es, rl])
 
-config = {
-"batchSize" : 16,
-"lr" : 1e-4,
-"wavelet":False,
-"dataAugs" : False
-}
 
-train(config=config)  
+for x in range(10):
+    config = {
+    "batchSize" : 16,
+    "lr" : 1e-4,
+    "wavelet":False,
+    "dataAugs" : False
+    }
+
+    train(config=config)  
+
+    config = {
+    "batchSize" : 16,
+    "lr" : 1e-4,
+    "wavelet":False,
+    "dataAugs" : True
+    }
+
+    train(config=config)  
+
+    config = {
+    "batchSize" : 16,
+    "lr" : 1e-4,
+    "wavelet":True,
+    "dataAugs" : True
+    }
+
+    train(config=config)  
