@@ -6,7 +6,7 @@ This project utalizes ResUnet++ and LeGall Cuda preprocessing to perform semanti
 
 Data can be downloaded from LINK TODO
 
-The dowloanded data can be placed in the "Data" folder and unziped.
+The dowloanded data can be placed in the main directory and unziped.
 
 The trained model and logs can be downloaded from LINK TODO
 
