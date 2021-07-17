@@ -23,23 +23,27 @@ config = {
 
 
 def test(model):
+    # build structures for reporting values over entire test set
     meanIOU = []
     IOU = []
     meanDICE = []
     DICE = []
     ACC = []
     MSE = []
+    Infer = []
 
+    # make test generator with train_type=2
     dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=2, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
-
+    
     for x in range(dataGenTest.__len__()):
+        # for each item in the test set predict and determine metrics
         start = time.time()
 
         inputVal, trueVal =  dataGenTest.__getitem__(x)
 
         predVal = model.predict(inputVal)
 
-        print("Inferance time in ms: ", 1000*abs(start-time.time()))
+        Infer.append(1000*abs(start-time.time()))
 
         predValCts = predVal.copy()
         predVal2 = predVal.copy()
@@ -64,13 +68,17 @@ def test(model):
 
 
 
+
     print("Mean Dice: ", np.mean(np.array(meanDICE)))
     print("Dice: ", np.mean(np.array(DICE)))
     print("Mean IOU: ",np.mean(np.array(meanIOU)))
     print("IOU: ",np.mean(np.array(IOU)))
     print("MSE: ", np.mean(np.array(MSE)))
     print("Accuracy: ",np.mean(np.array(ACC)))
+    print("Inferance speed: ",np.mean(np.array(Infer[5:])))
     
+    K.clear_session()
+
 def get_flops():
     run_meta = tf.RunMetadata()
     opts = tf.profiler.ProfileOptionBuilder.float_operation()
@@ -81,11 +89,23 @@ def get_flops():
 
     return flops.total_float_ops  # Prints the "flops" of the model.
 
+# With wavelet preprocessing and with Data Augmentation
 model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_08_20_25/_epoch-055-0.276358-0.929860.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
-#model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_09_03_41/_epoch-090-0.292013-0.928495.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+print("With wavelet preprocessing and with Data Augmentation")
+print(model.summary())
+get_flops()
+test(model)
 
-#print(model.summary())
+# Without wavelet preprocessing and with Data Augmentation
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_09_03_41/_epoch-090-0.292013-0.928495.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+print("Without wavelet preprocessing and with Data Augmentation")
+print(model.summary())
+get_flops()
+test(model)
 
-#get_flops()
-
+# Without wavelet preprocessing and without Data Augmentation
+model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_False_DeepSu_False_lr_0.0001_batch_16_t_2021_07_15_13_09/_epoch-007-0.405808-0.900194.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
+print("Without wavelet preprocessing and without Data Augmentation")
+print(model.summary())
+get_flops()
 test(model)

@@ -1,5 +1,6 @@
 # name: UNet++ implemenation
 # author: https://github.com/MrGiovanni/UNetPlusPlus/blob/f8c4064659c6857d17f39088acd0d1eeb95340ea/keras/helper_functions.py
+# author: https://github.com/DebeshJha/ResUNetPlusPlus
 # ported: Declan McIntosh
 
 from   keras.models import Model

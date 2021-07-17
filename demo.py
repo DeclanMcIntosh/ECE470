@@ -20,6 +20,7 @@ config = {
 
 def demo(model):
 
+    # test set generator
     dataGenTest = DataGeneratorSIIM(config["batchSize"], train_type=2, wavelet=config["wavelet"], deepSupervision=config["deepSupervision"])
 
     for x in range(dataGenTest.__len__()):
@@ -41,6 +42,7 @@ def demo(model):
         trueVal2[trueVal2<0.5] = 1 
         trueVal2[trueVal2>=0.5] = 0 
         
+        # histogramEqualization for high frequency wavelet chanels to make them easier to visualize 
         def histEqual(img):
             img = 255*img
             img = img.astype(np.uint8)
@@ -62,7 +64,9 @@ def demo(model):
         RGB_HH = histEqual(((np.concatenate([np.expand_dims(inputVal[0,:,:,2+x],axis=2),np.expand_dims(inputVal[0,:,:,1+x],axis=2),np.expand_dims(inputVal[0,:,:,0+x],axis=2)], axis=2)/2.+0.5)))
         RGB_HH = np.sqrt(((RGB_HH - np.min(RGB_HH))/(np.max(RGB_HH)-np.min(RGB_HH))))
 
+        # plot wavelet
         fig = plt.figure()
+        fig.suptitle("Wavelet Pre-processing")
         ax1 = fig.add_subplot(2,2,1)
         ax1.axis('off')
         ax1.title.set_text("RGB Image")
@@ -81,7 +85,9 @@ def demo(model):
         ax4.imshow(RGB_HH)
         plt.show()
 
+        # plot prediction
         fig = plt.figure()
+        fig.suptitle("Prediction")
         ax1 = fig.add_subplot(2,2,1)
         ax1.axis('off')
         ax1.title.set_text("RGB Image")
@@ -100,7 +106,7 @@ def demo(model):
         ax4.imshow(np.concatenate([predVal[0],predVal[0],predVal[0]],axis=2))
         plt.show()
 
-
+# load the best model with wavelet pre-processing
 model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_DeepSu_False_lr_0.0001_batch_16_t_2021_07_08_20_25/_epoch-055-0.276358-0.929860.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 
 demo(model)

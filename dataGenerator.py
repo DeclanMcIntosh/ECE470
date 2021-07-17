@@ -4,19 +4,17 @@
 
 import numpy as np 
 import cv2
-import random
 import os
 import keras
 from random import shuffle
 from wavelet import *
 import skimage.measure
-import json
-from xml.dom import minidom
 
 import imgaug.augmenters as iaa
 
 
 def generateDataReferancesKvasir(splits,train_type,dataDir="Data/Kvasir-SEG/"):
+    # find all referances to data in the Kvaiser-SEG folder
     imgs   = list(os.listdir(dataDir+"images"))
     imgs   = [s for s in imgs] 
     masks  = list(os.listdir(dataDir+"masks"))
@@ -28,10 +26,12 @@ def generateDataReferancesKvasir(splits,train_type,dataDir="Data/Kvasir-SEG/"):
     return {"Raw":imgs[start:end], "Ann":masks[start:end]}
 
 def getSampleKvasir(dataReferances, index, dim):
+    # Take a index to our found data and load that image
     dataDir="Data/Kvasir-SEG/"
     img = cv2.imread(dataDir+"images/" + dataReferances["Raw"][index])
     ann = cv2.imread(dataDir+"masks/"  + dataReferances["Raw"][index])
 
+    # Scale the input image without squishing it, padding with zeros
     scaling = max([img.shape[0] / dim[0], img.shape[1] / dim[1] ])
     new_x = int(img.shape[0] // scaling)
     new_y = int(img.shape[1] // scaling)
@@ -50,7 +50,7 @@ class DataGeneratorSIIM(keras.utils.Sequence):
     def __init__(self, batch_size, dim=(256,256), wavelet=False, train_type=0, splits=[0.85,0.925,1], channels = 3,\
         dataFinder=generateDataReferancesKvasir, dataPuller=getSampleKvasir, deepSupervision=False, dataAugs=False): #
         'Initialization'
-        self.train_type = train_type # 0 for train, 1 for validate
+        self.train_type = train_type # 0 for train, 1 for validate, 2 for test
         self.batch_size = batch_size
         self.channels = channels
         self.wavelet = wavelet
@@ -61,9 +61,10 @@ class DataGeneratorSIIM(keras.utils.Sequence):
         else:
             self.dim = dim
 
-
         self.dataPuller = dataPuller
         self.dataReferances = dataFinder(splits,train_type)
+
+        # define data augmenation
         self.dataAugmentater = iaa.Sequential([
             iaa.Fliplr(0.35),
             iaa.Flipud(0.35),
@@ -76,10 +77,10 @@ class DataGeneratorSIIM(keras.utils.Sequence):
 
 
     def __len__(self): 
-        
         return int(np.floor(len(self.dataReferances["Raw"]) / self.batch_size))
 
     def __getitem__(self, index):
+        # get a batch of input tensors and target ground truths
         indexes = list(range(index*self.batch_size,(index+1)*self.batch_size))
         X, Y = self.__data_generation(indexes)
         if self.deepSupervision:
@@ -88,6 +89,7 @@ class DataGeneratorSIIM(keras.utils.Sequence):
             return X, Y
 
     def on_epoch_end(self): 
+        # if training shuffle things
         if self.train_type == 0:
             c = list(zip(self.dataReferances["Raw"], self.dataReferances["Ann"]))
             shuffle(c)
