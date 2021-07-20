@@ -14,13 +14,6 @@ import numpy as np
 
 import time
 
-config = {
-"batchSize" : 1,
-"lr" : 1e-3,
-"wavelet":True,   
-"deepSupervision" : False,
-}
-
 
 def test(model):
     # build structures for reporting values over entire test set
@@ -70,9 +63,9 @@ def test(model):
 
 
     print("Mean Dice: ", np.mean(np.array(meanDICE)))
-    print("Dice: ", np.mean(np.array(DICE)))
+    print("Forground Dice: ", np.mean(np.array(DICE)))
     print("Mean IOU: ",np.mean(np.array(meanIOU)))
-    print("IOU: ",np.mean(np.array(IOU)))
+    print("Forground IOU: ",np.mean(np.array(IOU)))
     print("MSE: ", np.mean(np.array(MSE)))
     print("Accuracy: ",np.mean(np.array(ACC)))
     print("Inferance speed: ",np.mean(np.array(Infer[5:])))
@@ -89,7 +82,14 @@ def get_flops():
 
     return flops.total_float_ops  # Prints the "flops" of the model.
 
+
 # With wavelet preprocessing and with Data Augmentation
+config = {
+"batchSize" : 1,
+"lr" : 1e-3,
+"wavelet":True,   
+"deepSupervision" : False,
+}
 model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_True_Augs_True_lr_0.0001_batch_16_t_2021_07_16_20_02/_epoch-055-0.256651-0.935096.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 print("With wavelet preprocessing and with Data Augmentation")
 print(model.summary())
@@ -97,6 +97,12 @@ get_flops()
 test(model)
 
 # Without wavelet preprocessing and with Data Augmentation
+config = {
+"batchSize" : 1,
+"lr" : 1e-3,
+"wavelet":False,   
+"deepSupervision" : False,
+}
 model = load_model("./Logs/Res_Loss_NewWeightedBCE&Dice_wavelet_False_Augs_True_lr_0.0001_batch_16_t_2021_07_16_19_12/_epoch-033-0.305945-0.923208.h5", custom_objects={"DiceLoss":DiceLoss,"testMag":testMag, "pure_dice":pure_dice}) # pretty good
 print("Without wavelet preprocessing and with Data Augmentation")
 print(model.summary())
