@@ -1,8 +1,9 @@
 numpy==1.19.5
 opencv-python==4.1.0.25
-Keras==2.2.4
+Keras==2.2.5
 tensorflow==1.13.1
 numba==0.53.1
 sklearn==0.0
 scikit-image==0.16.2
 imgaug==0.4.0
+h5py==2.10.0
