@@ -1,5 +1,7 @@
 # ECE470 Project Code
 
+FULL CODE AT https://github.com/DeclanMcIntosh/ECE470
+
 Today cancer is a leading ailment in society and some of the most common cancers occurring in the gastrointestinal tract. To combat these cancers and perform preventative care colonoscopies are performed to screen for these cancers and remove any abnormalities which may be precursors to these cancers. These precursors are broadly referred to as polyps. Currently, there are large amounts of polyps missed as many as 30\% during these procedures which allows for cancers to grow in a patient.  
 
 To reduce these missed polyps this report details a method to generate a pixel-wise mask of polyps in a colonoscopy image automatically. This "second opinion" from a computer can standardize care and generate a baseline of care between all medical practices. A segmentation formulation of this problem also will enable greater automatic estimation of polyp size and enable better meta-data around polyps for public-health level studies. The proposed method is able to operate in real-time exceeding 15FPS and has a mean Dice Score exceeding 0.85 indicating extremely strong segmentation results. These results are currently limited by the small sizes of datasets available in this domain. 
